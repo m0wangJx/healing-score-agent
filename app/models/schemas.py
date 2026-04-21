@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 
 
 class ChatRequest(BaseModel):
@@ -11,3 +11,6 @@ class ChatResponse(BaseModel):
     reply: str
     risk_level: str
     score: int
+    evidence: List[str]
+    model_provider: str
+    model_name: str
