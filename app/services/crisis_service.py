@@ -1,4 +1,18 @@
 ### runnable组件 crisis_step
+'''crisis_step:
+        input:
+            user_text
+            score_result
+            session_id
+        output:
+            user_text
+            session_id
+            score_result
+            instant_score
+            persistent_score (updated)
+            risk_level
+
+'''
 
 from langchain_core.runnables import RunnableLambda
 from app.core.safety import detect_high_risk, detect_medium_risk

@@ -1,6 +1,22 @@
 ### 封装llm，核心接口 generate_supportive_reply
+'''memory_step:
+        input:
+            user_text
+            score_result
+            session_id
+            persistent_score
+            risk_level
+        output:
+            reply
+            score_result
+            persistent_score
+            risk_level
+            evidence
+
+'''
 
 import requests
+from langchain_core.runnables import RunnableLambda
 from app.core.config import settings
 from app.system_prompts.skill_loader import KnowledgeBase
 
@@ -96,3 +112,40 @@ def generate_supportive_reply(
 """.strip()
 
     return _call_ollama(prompt, system=system_prompt)
+
+
+### 构建runnable组件
+def _format_evidence(details: dict) -> list:
+    evidence = []
+    text_features = details.get("text_features_extracted", {})
+    if text_features:
+        feature_labels = {
+            "anhedonia": "快感缺失", "depressed": "情绪低落", "sleep": "睡眠问题",
+            "fatigue": "疲劳", "appetite": "食欲变化", "guilt": "内疚感",
+            "concentrate": "注意力困难", "movement": "运动迟缓"
+        }
+        high_items = [(k, v) for k, v in sorted(text_features.items(), key=lambda x: x[1], reverse=True) if v >= 1]
+        for k, v in high_items[:4]:
+            evidence.append(f"{feature_labels.get(k, k)}: {v}/3分")
+
+    audio_summary = details.get("audio_features_summary")
+    if isinstance(audio_summary, dict):
+        evidence.append(
+            f"音频特征: 基频均值 {audio_summary.get('pitch_mean_hz', 'N/A')}Hz, "
+            f"能量均值 {audio_summary.get('energy_mean', 'N/A')}"
+        )
+
+    return evidence if evidence else ["评估数据不足"]
+
+reply_step = RunnableLambda(lambda x: {
+    "reply": generate_supportive_reply(
+        user_text=x["user_text"],
+        risk_level=x["risk_level"],
+        persistent_score=int(x["persistent_score"]),
+        evidence=_format_evidence(x["score_result"]["details"]),
+    ),
+    "score_result": x["score_result"],
+    "persistent_score": x["persistent_score"],
+    "risk_level": x["risk_level"],
+    "evidence": _format_evidence(x["score_result"]["details"]),
+})

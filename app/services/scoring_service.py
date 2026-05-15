@@ -1,5 +1,15 @@
 
 ### runnable组件 scoring_step
+'''scoring_step:
+        input:
+            user_text: str
+            audio_path
+            session_id: str
+        output:
+            user_text
+            session_id
+            score_result
+'''
 
 import os
 from typing import Optional
@@ -31,6 +41,7 @@ def score_text_and_audio(text: str, audio_path: Optional[str] = None) -> dict:
 
 scoring_step = RunnableLambda(lambda inputs: {
     "user_text": inputs["user_text"],
+    "session_id": inputs["session_id"],
     "score_result": score_text_and_audio(
         text=inputs["user_text"],
         audio_path=inputs.get("audio_path"),
