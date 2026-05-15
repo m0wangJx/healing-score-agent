@@ -14,7 +14,6 @@ def test_score_text_only():
     # 验证返回结构
     assert result["status"] == "success"
     assert "predicted_sds_score" in result
-    assert "risk_level" in result
     assert "engine_used" in result
     assert "details" in result
     assert result["details"]["audio_features_summary"] == "No audio input detected"

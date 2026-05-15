@@ -31,9 +31,9 @@ def _mock_score_result(risk_level_cn, score):
 
 
 @patch("app.services.llm_service._call_ollama", return_value="我理解你的感受，请多说说你最近的情况。")
-@patch("app.services.pipeline_service.score_text_and_audio")
+@patch("app.services.scoring_service.score_text_and_audio")
 def test_chat_message_low_risk(mock_score, mock_ollama):
-    mock_score.return_value = _mock_score_result("正常", 20.0)
+    mock_score.return_value = _mock_score_result("轻度", 55.0)
 
     payload = {"user_text": "我今天有点累，但还好", "session_id": "test-low-001"}
     response = client.post("/chat/message", json=payload)
@@ -42,11 +42,11 @@ def test_chat_message_low_risk(mock_score, mock_ollama):
     data = response.json()
     assert "reply" in data
     assert data["risk_level"] == "low"
-    assert data["score"] == 20
+    assert data["score"] == 55
 
 
 @patch("app.services.llm_service._call_ollama", return_value="我能感受到你正在经历一段困难的时期。")
-@patch("app.services.pipeline_service.score_text_and_audio")
+@patch("app.services.scoring_service.score_text_and_audio")
 def test_chat_message_medium_risk(mock_score, mock_ollama):
     mock_score.return_value = _mock_score_result("中度", 65.0)
 

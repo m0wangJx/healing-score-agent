@@ -1,4 +1,5 @@
-### 封装llm，核心接口 generate_supportive_reply
+
+### 封装llm，runnable组件 reply_step
 '''memory_step:
         input:
             user_text

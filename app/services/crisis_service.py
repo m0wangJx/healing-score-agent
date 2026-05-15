@@ -16,16 +16,20 @@
 
 from langchain_core.runnables import RunnableLambda
 from app.core.safety import detect_high_risk, detect_medium_risk
+from app.services.memory_service import _memory
 
 
 def _safety_and_level(inputs: dict) -> dict:
     user_text = inputs["user_text"]
+    session_id = inputs.get("session_id", "default")
     score = inputs["persistent_score"]
 
     if detect_high_risk(user_text):
         score = 95.0
+        _memory.set(session_id, score)
     elif detect_medium_risk(user_text) and score < 60:
         score = 60.0
+        _memory.set(session_id, score)
 
     if score >= 73:
         risk_level = "high"

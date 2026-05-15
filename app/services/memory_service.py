@@ -42,6 +42,9 @@ class PersistentScoreMemory:
     def get(self, session_id: str) -> float | None:
         return self._store.get(session_id)
 
+    def set(self, session_id: str, score: float) -> None:
+        self._store[session_id] = score
+
     def reset(self, session_id: str) -> None:
         self._store.pop(session_id, None)
 

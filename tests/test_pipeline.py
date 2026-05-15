@@ -3,7 +3,7 @@ from app.services.pipeline_service import run_pipeline
 
 
 @patch("app.services.llm_service._call_ollama", return_value="我理解你的感受，请多说说你最近的情况。")
-@patch("app.services.pipeline_service.score_text_and_audio")
+@patch("app.services.scoring_service.score_text_and_audio")
 def test_pipeline_returns_required_fields(mock_score, mock_ollama):
     mock_score.return_value = {
         "status": "success",
