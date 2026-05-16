@@ -15,13 +15,19 @@
             evidence
 
 '''
+import os
 
 import requests
 from langchain_core.runnables import RunnableLambda
 from app.core.config import settings
-from app.system_prompts.skill_loader import KnowledgeBase
+from app.prompt.knowledge_loader import KnowledgeBase
 
 _kb: KnowledgeBase | None = None
+
+_TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "prompts")
+
+with open(os.path.join(_TEMPLATE_DIR, "system_prompt.md"), "r", encoding="utf-8") as _f:
+    REPLY_SYSTEM_PROMPT_TEMPLATE = _f.read()
 
 
 def _get_kb() -> KnowledgeBase:
@@ -80,42 +86,27 @@ def generate_supportive_reply(
             "当前用户无抑郁症风险，请正常交流"
         )
         refs = []
-
+    else:
+        extra_instruction = "请给出温和、支持性的回应。"
+        refs = []
 
     kb = _get_kb()
-    system_prompt = kb.generate_prompt(include_refs=refs)
+    prompt_knowledge = kb.generate_prompt(include_refs=refs)
+    prompt = user_text
 
-    prompt = f"""
- 用户输入：{user_text}
+    system_prompt = REPLY_SYSTEM_PROMPT_TEMPLATE.format(
+        risk_level=risk_level,
+        persistent_score=persistent_score,
+        evidence="; ".join(evidence),
+        extra_instruction=extra_instruction,
+        prompt_knowledge=prompt_knowledge,
+    ).strip()
 
-已知评分结果：
-- 风险等级：{risk_level}
-- 分数：{persistent_score}
-- 判断依据：{"; ".join(evidence)}
-
-额外要求：{extra_instruction}
-
-【核心原则】
-1. 先表达理解和共情，再做回应
-2. 不否定、不评判用户情绪
-3. 不说教、不进行长篇分析
-4. 以“陪伴者”身份交流，不扮演医生或权威
-
-【表达要求】
-- 回复控制在50~80字
-- 使用自然口语，不要像机器人
-- 避免使用专业术语，如“抑郁症诊断”等
-- 不要重复用户原话
-- 请直接输出给用户的回复，不要解释推理过程，不要输出项目符号。
-
-【你的目标】
-让用户感到被理解、被接住，而不是被分析或被教育
-""".strip()
+    print(system_prompt)
 
     return _call_ollama(prompt, system=system_prompt)
 
 
-### 构建runnable组件
 def _format_evidence(details: dict) -> list:
     evidence = []
     text_features = details.get("text_features_extracted", {})
@@ -138,6 +129,7 @@ def _format_evidence(details: dict) -> list:
 
     return evidence if evidence else ["评估数据不足"]
 
+### 构建runnable组件
 reply_step = RunnableLambda(lambda x: {
     "reply": generate_supportive_reply(
         user_text=x["user_text"],

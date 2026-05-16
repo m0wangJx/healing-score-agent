@@ -3,7 +3,7 @@ from typing import List, Optional
 
 
 class KnowledgeBase:
-    """心理学专业知识加载器，将 SKILL.md 和 references/*.md 组装为 LLM System Prompt"""
+    """心理学专业知识加载器，将 knowledge.md 和 references/*.md 组装为 LLM System Prompt"""
 
     def __init__(self, base_dir: Optional[str] = None):
         if base_dir is None:
@@ -11,7 +11,7 @@ class KnowledgeBase:
         self.base_dir = base_dir
         self.ref_dir = os.path.join(base_dir, "references")
 
-        skill_path = os.path.join(base_dir, "SKILL.md")
+        skill_path = os.path.join(base_dir, "knowledge.md")
         self.core_knowledge = self._load_skill(skill_path)
 
     # ---------- private ----------
@@ -53,7 +53,7 @@ class KnowledgeBase:
 
         Args:
             include_refs: 需要注入的参考模块名列表（如 ["cbt-techniques", "emotion-support"]）。
-                          传 None 则只包含 SKILL.md 核心知识。
+                          传 None 则只包含 knowledge.md 核心知识。
 
         Returns:
             组装好的 System Prompt 字符串，可直接作为 LLM 的 system message。

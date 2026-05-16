@@ -1,8 +1,8 @@
-from skill_loader import KnowledgeBase
+from knowledge_loader import KnowledgeBase
 
 kb = KnowledgeBase()
 
-print("=== 核心 SKILL.md ===")
+print("=== 核心 knowledge.md ===")
 print(kb.generate_prompt())
 print()
 
