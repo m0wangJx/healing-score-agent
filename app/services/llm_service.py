@@ -17,14 +17,15 @@
 '''
 import os
 
-import requests
 from langchain_core.runnables import RunnableLambda
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import SystemMessage, HumanMessage
 from app.core.config import settings
 from app.prompt.knowledge_loader import KnowledgeBase
 
 _kb: KnowledgeBase | None = None
 
-_TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "prompts")
+_TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "prompt")
 
 with open(os.path.join(_TEMPLATE_DIR, "system_prompt.md"), "r", encoding="utf-8") as _f:
     REPLY_SYSTEM_PROMPT_TEMPLATE = _f.read()
@@ -37,22 +38,38 @@ def _get_kb() -> KnowledgeBase:
     return _kb
 
 
-def _call_ollama(prompt: str, system: str = "") -> str:
-    body: dict = {
-        "model": settings.llm_model,
-        "prompt": prompt,
-        "stream": False,
-    }
-    if system:
-        body["system"] = system
-    response = requests.post(
-        f"{settings.ollama_base_url}/api/generate",
-        json=body,
-        timeout=120,
+# def _call_ollama(prompt: str, system: str = "") -> str:
+#     body: dict = {
+#         "model": settings.llm_model,
+#         "prompt": prompt,
+#         "stream": False,
+#     }
+#     if system:
+#         body["system"] = system
+#     response = requests.post(
+#         f"{settings.ollama_base_url}/api/generate",
+#         json=body,
+#         timeout=120,
+#     )
+#     response.raise_for_status()
+#     data = response.json()
+#     return data["response"].strip()
+
+
+def _call_llm(prompt: str, system: str = "") -> str:
+    llm = ChatOpenAI(
+        model="deepseek-chat",
+        api_key=settings.api_key,
+        base_url=settings.base_url,
+        temperature=0.7,
+        max_tokens=256,
     )
-    response.raise_for_status()
-    data = response.json()
-    return data["response"].strip()
+    messages = []
+    if system:
+        messages.append(SystemMessage(content=system))
+    messages.append(HumanMessage(content=prompt))
+    response = llm.invoke(messages)
+    return response.content.strip()
 
 
 def generate_supportive_reply(
@@ -102,9 +119,7 @@ def generate_supportive_reply(
         prompt_knowledge=prompt_knowledge,
     ).strip()
 
-    print(system_prompt)
-
-    return _call_ollama(prompt, system=system_prompt)
+    return _call_llm(prompt, system=system_prompt)
 
 
 def _format_evidence(details: dict) -> list:
@@ -116,8 +131,8 @@ def _format_evidence(details: dict) -> list:
             "fatigue": "疲劳", "appetite": "食欲变化", "guilt": "内疚感",
             "concentrate": "注意力困难", "movement": "运动迟缓"
         }
-        high_items = [(k, v) for k, v in sorted(text_features.items(), key=lambda x: x[1], reverse=True) if v >= 1]
-        for k, v in high_items[:4]:
+        for k in ["anhedonia", "depressed", "sleep", "fatigue", "appetite", "guilt", "concentrate", "movement"]:
+            v = text_features.get(k, 0)
             evidence.append(f"{feature_labels.get(k, k)}: {v}/3分")
 
     audio_summary = details.get("audio_features_summary")

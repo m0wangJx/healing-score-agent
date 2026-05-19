@@ -315,11 +315,3 @@ Q5. 以前有没有尝试过自杀或自伤？
 - 丧亲者支持
 
 ---
-
-**参考文献**：
-- WHO. Preventing Suicide: A Global Imperative (2014)
-- 美国卫生与公众服务部. 2024年国家自杀预防战略
-- 中国心理卫生协会. 心理援助热线技术指南
-- Columbia University. C-SSRS
-
-**最后更新**：2026年3月

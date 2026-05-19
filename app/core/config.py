@@ -18,4 +18,7 @@ class Settings(BaseModel):
 
     dashscope_api_key: str = os.getenv("DASHSCOPE_API_KEY", "")
 
+    api_key: str = os.getenv("API_KEY", "")
+    base_url: str = os.getenv("BASE_URL", "")
+
 settings = Settings()

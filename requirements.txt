@@ -27,6 +27,7 @@ typing_extensions==4.15.0
 urllib3==2.6.3
 uvicorn==0.44.0
 langchain-core>=0.3.0
+langchain-openai>=0.3.0
 joblib>=1.4.0
 numpy>=2.0.0
 librosa>=0.10.0

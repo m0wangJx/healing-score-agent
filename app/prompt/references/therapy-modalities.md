@@ -274,10 +274,3 @@ PTSD、复杂创伤、焦虑、抑郁
 | 短期危机 | SFBT | 危机干预 |
 
 ---
-
-**参考文献**：
-- American Psychological Association. Evidence-Based Practice in Psychology
-- National Institute for Health and Care Excellence (NICE) Guidelines
-- Hofmann SG, et al. (2012). The Efficacy of Cognitive Behavioral Therapy
-
-**最后更新**：2026年3月

@@ -30,7 +30,6 @@ def _get_engine() -> UnifiedDepressionEngine:
         _engine = UnifiedDepressionEngine(
             v1_model_path=v1_path,
             v2_model_path=v2_path,
-            api_key=settings.dashscope_api_key,
         )
     return _engine
 

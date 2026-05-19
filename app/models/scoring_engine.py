@@ -1,4 +1,4 @@
-### 核心调用接口 得到
+###
 # predicted_sds_score >= 73 -> high ,
 # predicted_sds_score >= 63 -> medium ,
 # predicted_sds_score >= 53 -> low ,
@@ -10,9 +10,9 @@ import warnings
 import numpy as np
 import joblib
 import librosa
-import dashscope
-from dashscope import Generation
 from http import HTTPStatus
+from openai import OpenAI
+from app.core.config import settings
 
 # 忽略 librosa 可能产生的某些库警告，保持控制台干净
 warnings.filterwarnings('ignore')
@@ -22,8 +22,8 @@ class UnifiedDepressionEngine:
     自适应抑郁风险打分引擎 (Unified Depression Scoring Engine)
     内部封装 V1(纯文本) 与 V2(多模态) 双模型，对外提供统一调用接口。
     """
-    def __init__(self, v1_model_path='eatd_rf_model_v1.joblib', v2_model_path='eatd_multimodal_rf_model_v2.joblib', api_key=None):
-        print("⚙️ 正在初始化 UnifiedDepressionEngine...")
+    def __init__(self, v1_model_path='eatd_rf_model_v1.joblib', v2_model_path='eatd_multimodal_rf_model_v2.joblib'):
+        print("正在初始化 UnifiedDepressionEngine...")
         
         # 1. 加载双脑模型
         if not os.path.exists(v1_model_path) or not os.path.exists(v2_model_path):
@@ -32,42 +32,48 @@ class UnifiedDepressionEngine:
         self.text_scorer_v1 = joblib.load(v1_model_path)
         self.multimodal_scorer_v2 = joblib.load(v2_model_path)
         
-        # 2. 配置通义千问 API 密钥
-        if api_key:
-            dashscope.api_key = api_key
-            
+        # 2. 配置 API 密钥
+        self.client = OpenAI(
+            api_key=settings.api_key,
+            base_url=settings.base_url
+        )
+
         # 强制特征顺序列表 (严禁修改顺序)
         self.TEXT_FEATURE_KEYS = ["anhedonia", "depressed", "sleep", "fatigue", "appetite", "guilt", "concentrate", "movement"]
 
     def _extract_text_features(self, text):
         """
-        调用 Qwen 提取 8 维文本病理特征
+        调用 DeepSeek 提取 8 维文本病理特征
         """
         system_prompt = """你是一位专业的临床心理学家。请分析用户的文本，并在以下8个抑郁维度上进行打分（0=无，1=轻度，2=中度，3=重度）。
-        必须严格输出纯JSON格式，不要任何Markdown包裹（如```json），包含且仅包含以下键：
+        必须严格输出纯JSON格式，包含且仅包含以下键：
         "anhedonia", "depressed", "sleep", "fatigue", "appetite", "guilt", "concentrate", "movement"."""
-        
+
         try:
-            response = Generation.call(
-                model="qwen-plus", 
-                messages=[{'role': 'system', 'content': system_prompt}, {'role': 'user', 'content': text}],
-                result_format='message'
+            # 使用标准 OpenAI SDK 格式调用 DeepSeek
+            response = self.client.chat.completions.create(
+                model="deepseek-chat",
+                messages=[
+                    {'role': 'system', 'content': system_prompt},
+                    {'role': 'user', 'content': text}
+                ],
+                # 显式开启 JSON 模式（DeepSeek 官方支持）
+                # 开启后，模型一定会返回合法的 JSON 字符串，且不会带 ```json 标记
+                response_format={"type": "json_object"}
             )
-            
-            if response.status_code == HTTPStatus.OK:
-                clean_content = response.output.choices[0]['message']['content'].strip()
-                # 清理可能残留的 markdown 标记
-                if clean_content.startswith("```json"):
-                    clean_content = clean_content[7:-3].strip()
-                elif clean_content.startswith("```"):
-                    clean_content = clean_content[3:-3].strip()
-                    
-                return json.loads(clean_content)
+
+            # 正确的 OpenAI 属性访问路径
+            clean_content = response.choices[0].message.content.strip()
+
+            return json.loads(clean_content)
+
         except Exception as e:
+            # 捕获所有 API 异常或 JSON 解析异常
             print(f"⚠️ 文本特征提取失败，启用安全降级机制: {e}")
-            
+
         # 如果大模型调用失败或解析错误，返回全 0 的安全底线
         return {k: 0 for k in self.TEXT_FEATURE_KEYS}
+
 
     def _extract_audio_features(self, audio_path):
         """

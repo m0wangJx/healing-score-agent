@@ -260,10 +260,3 @@
 
 ---
 
-**参考文献**：
-- American Psychiatric Association. DSM-5
-- World Health Organization. ICD-11
-| 中国精神障碍分类与诊断标准第3版(CCMD-3)
-| 国家卫生健康委员会. 精神障碍诊疗规范
-
-**最后更新**：2026年3月

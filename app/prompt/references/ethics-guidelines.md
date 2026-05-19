@@ -449,9 +449,3 @@
 
 ---
 
-**参考文献**：
-- 中国心理学会. (2018). 中国心理学会临床与咨询心理学工作伦理守则（第二版）
-- American Psychological Association. (2017). Ethical Principles of Psychologists and Code of Conduct
-- American Counseling Association. (2014). ACA Code of Ethics
-
-**最后更新**：2026年3月

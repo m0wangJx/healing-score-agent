@@ -240,9 +240,3 @@
 
 ---
 
-**参考文献**：
-- American Psychiatric Association. (2013). DSM-5
-- World Health Organization. (2019). ICD-11
-- 中华医学会精神科分会. (2015). 中国精神障碍分类与诊断标准第3版(CCMD-3)
-
-**最后更新**：2026年3月

@@ -295,9 +295,3 @@
 
 ---
 
-**资料来源**：
-- Beck AT. Cognitive Therapy and the Emotional Disorders (1976)
-- 《认知行为疗法基础与应用》Judith S. Beck
-- 中国认知行为治疗专业委员会
-
-**最后更新**：2026年3月
